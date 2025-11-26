@@ -1,0 +1,45 @@
+# Node modules
+node_modules/
+
+# TypeScript output directory
+/dist
+/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+bower_components/
+jspm_packages/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# TypeScript-specific
+*.tsbuildinfo
+
+# VSCode settings
+.vscode/
+
+# IDE or editor directories and files
+.idea/
+*.swp
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Coverage directory (e.g., Jest, Istanbul)
+coverage/
+
+# SASS/SCSS
+.sass-cache/
+
+# dotenv environment variables
+*.env
