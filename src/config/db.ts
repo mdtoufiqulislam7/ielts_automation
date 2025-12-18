@@ -49,7 +49,7 @@ pool.on('error', (err: Error) => {
 // Test the connection
 pool.connect()
   .then((client) => {
-    console.log('✅ Database connected successfully');
+    console.log('Database connected successfully');
     client.release();
   })
   .catch((err: Error) => {

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import pool from '../config/db';
+import { resultService } from './resultService';
 
 export interface CreateExamData {
   exam_type: string;
@@ -111,10 +112,16 @@ export class ExamService {
     const serperEndpoint =
       process.env.SERPER_API_URL || 'https://google.serper.dev/search';
 
-    const requestBody = {
-      q: `IELTS Writing ${examType} task question ideas for exam practice`,
-      num: Math.max(numberOfQuestions, 5),
-    };
+      const requestBody = {
+        q: `Generate ${Math.max(numberOfQuestions, 5)} authentic IELTS Writing ${examType} task questions suitable for real exam practice.
+      Each question must:
+      - Match official IELTS exam style and difficulty
+      - Be clearly and professionally worded
+      - Avoid repetition of topics
+      - Be suitable for band 6–9 candidates
+      Return only the questions in a numbered list, with no explanations.`,
+        num: Math.max(numberOfQuestions, 5),
+      };
 
     const task1Instruction = 'You will be presented with a graph, table, chart or diagram and asked to describe, summarise or explain the information in your own words. You may be asked to describe and present data, describe the stages of a process, how something works or describe an object, plan or design.';
 
@@ -367,6 +374,8 @@ export class ExamService {
       [user_exam_id, question_id]
     );
 
+    let answerResult: AnswerResponse;
+
     if (existingAnswer.rows.length > 0) {
       // Update existing answer
       const result = await pool.query(
@@ -376,7 +385,7 @@ export class ExamService {
          RETURNING id, user_exam_id, question_id, answer_text, is_correct`,
         [answer_text, existingAnswer.rows[0].id]
       );
-      return result.rows[0];
+      answerResult = result.rows[0];
     } else {
       // Create new answer
       const result = await pool.query(
@@ -385,8 +394,22 @@ export class ExamService {
          RETURNING id, user_exam_id, question_id, answer_text, is_correct`,
         [user_exam_id, question_id, answer_text]
       );
-      return result.rows[0];
+      answerResult = result.rows[0];
     }
+
+    // Call resultService to grade answers after submission
+    // This runs asynchronously and won't block the response
+    // Errors are caught so they don't affect answer submission
+    resultService(user_exam_id)
+      .then((gradingResult) => {
+        console.log(`✅ Answers graded for user_exam_id: ${user_exam_id}, Total mark: ${gradingResult.total_mark}`);
+      })
+      .catch((error) => {
+        console.error(`❌ Error grading answers for user_exam_id: ${user_exam_id}:`, error);
+        // Don't throw - answer submission should succeed even if grading fails
+      });
+
+    return answerResult;
   }
 
   // Complete exam (mark as completed)
