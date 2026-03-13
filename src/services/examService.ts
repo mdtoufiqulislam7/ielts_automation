@@ -88,6 +88,7 @@ export class ExamService {
 
     return defaultQuestions[examType] || defaultQuestions['Task 1'];
   }
+  
 
   // Generate IELTS writing questions using Serper API search results
   static async generateIELTSQuestions(
